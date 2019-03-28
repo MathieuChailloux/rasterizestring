@@ -32,6 +32,7 @@ __revision__ = '$Format:%H$'
 
 from qgis.core import QgsProcessingProvider
 from .rasterize_string_algorithm import RasterizeStringAlgorithm
+from .generate_integer_field_algorithm import GenerateIntegerFieldEditAlgorithm, GenerateIntegerFieldCreationAlgorithm
 
 
 class RasterizeStringProvider(QgsProcessingProvider):
@@ -40,7 +41,9 @@ class RasterizeStringProvider(QgsProcessingProvider):
         QgsProcessingProvider.__init__(self)
 
         # Load algorithms
-        self.alglist = [RasterizeStringAlgorithm()]
+        self.alglist = [RasterizeStringAlgorithm(),
+                        GenerateIntegerFieldEditAlgorithm(),
+                        GenerateIntegerFieldCreationAlgorithm()]
 
     def unload(self):
         """
