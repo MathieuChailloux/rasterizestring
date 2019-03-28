@@ -72,9 +72,8 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
     OPTIONS = 'OPTIONS'
     DATA_TYPE = 'DATA_TYPE'
     OUTPUT = 'OUTPUT'
-
+    
     TYPES = ['Byte', 'Int16', 'UInt16', 'UInt32', 'Int32', 'Float32', 'Float64', 'CInt16', 'CInt32', 'CFloat32', 'CFloat64']
-
     def initAlgorithm(self, config=None):
         self.units = [self.tr("Pixels"),
                       self.tr("Georeferenced units")]
@@ -153,12 +152,12 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         for f in layer.getFeatures():
             res.add(f[fieldname])
         return res
-                                                                  
+        
     def processAlgorithm(self, parameters, context, feedback):
         # Dummy function to enable running an alg inside an alg
         def no_post_process(alg, context, feedback):
             pass
-        
+            
         input = self.parameterAsVectorLayer(parameters,self.INPUT,context)
         fieldname = self.parameterAsString(parameters,self.FIELD,context)
         
