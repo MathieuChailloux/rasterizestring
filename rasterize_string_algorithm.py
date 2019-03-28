@@ -30,129 +30,155 @@ __copyright__ = '(C) 2019 by Mathieu Chailloux'
 
 __revision__ = '$Format:%H$'
 
+import os
+
+import processing
+
 from PyQt5.QtCore import QCoreApplication
+# from qgis.core import (QgsProcessing,
+                       # QgsFeatureSink,
+                       # QgsProcessingAlgorithm,
+                       # QgsProcessingParameterFeatureSource,
+                       # QgsProcessingParameterFeatureSink)
+
 from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
                        QgsProcessingAlgorithm,
+                       QgsRasterFileWriter,
+                       QgsProcessingParameterDefinition,
                        QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink)
+                       QgsProcessingParameterField,
+                       QgsProcessingParameterRasterLayer,
+                       QgsProcessingParameterNumber,
+                       QgsProcessingParameterString,
+                       QgsProcessingParameterEnum,
+                       QgsProcessingParameterExtent,
+                       QgsProcessingParameterBoolean,
+                       QgsProcessingParameterRasterDestination)
 
 
 class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
-    """
-    This is an example algorithm that takes a vector layer and
-    creates a new identical one.
 
-    It is meant to be used as an example of how to create your own
-    algorithms and explain methods and variables used to do it. An
-    algorithm like this will be available in all elements, and there
-    is not need for additional work.
-
-    All Processing algorithms should extend the QgsProcessingAlgorithm
-    class.
-    """
-
-    # Constants used to refer to parameters and outputs. They will be
-    # used when calling the algorithm from another algorithm, or when
-    # calling from the QGIS console.
-
-    OUTPUT = 'OUTPUT'
     INPUT = 'INPUT'
+    FIELD = 'FIELD'
+    BURN = 'BURN'
+    WIDTH = 'WIDTH'
+    HEIGHT = 'HEIGHT'
+    UNITS = 'UNITS'
+    NODATA = 'NODATA'
+    EXTENT = 'EXTENT'
+    INIT = 'INIT'
+    INVERT = 'INVERT'
+    ALL_TOUCH = 'ALL_TOUCH'
+    OPTIONS = 'OPTIONS'
+    DATA_TYPE = 'DATA_TYPE'
+    OUTPUT = 'OUTPUT'
 
-    def initAlgorithm(self, config):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
+    TYPES = ['Byte', 'Int16', 'UInt16', 'UInt32', 'Int32', 'Float32', 'Float64', 'CInt16', 'CInt32', 'CFloat32', 'CFloat64']
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
-        self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT,
-                self.tr('Input layer'),
-                [QgsProcessing.TypeVectorAnyGeometry]
-            )
-        )
+    def initAlgorithm(self, config=None):
+        self.units = [self.tr("Pixels"),
+                      self.tr("Georeferenced units")]
 
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT,
-                self.tr('Output layer')
-            )
-        )
+        self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
+                                                              self.tr('Input layer')))
+        self.addParameter(QgsProcessingParameterField(self.FIELD,
+                                                      self.tr('Field to use for a burn-in value'),
+                                                      None,
+                                                      self.INPUT,
+                                                      QgsProcessingParameterField.Any,
+                                                      optional=True))
+        self.addParameter(QgsProcessingParameterNumber(self.BURN,
+                                                       self.tr('A fixed value to burn'),
+                                                       type=QgsProcessingParameterNumber.Double,
+                                                       defaultValue=0.0,
+                                                       optional=True))
+        self.addParameter(QgsProcessingParameterEnum(self.UNITS,
+                                                     self.tr('Output raster size units'),
+                                                     self.units))
+        self.addParameter(QgsProcessingParameterNumber(self.WIDTH,
+                                                       self.tr('Width/Horizontal resolution'),
+                                                       type=QgsProcessingParameterNumber.Double,
+                                                       minValue=0.0,
+                                                       defaultValue=0.0))
+        self.addParameter(QgsProcessingParameterNumber(self.HEIGHT,
+                                                       self.tr('Height/Vertical resolution'),
+                                                       type=QgsProcessingParameterNumber.Double,
+                                                       minValue=0.0,
+                                                       defaultValue=0.0))
+        self.addParameter(QgsProcessingParameterExtent(self.EXTENT,
+                                                       self.tr('Output extent')))
+        self.addParameter(QgsProcessingParameterNumber(self.NODATA,
+                                                       self.tr('Assign a specified nodata value to output bands'),
+                                                       type=QgsProcessingParameterNumber.Double,
+                                                       defaultValue=0.0,
+                                                       optional=True))
 
+        options_param = QgsProcessingParameterString(self.OPTIONS,
+                                                     self.tr('Additional creation options'),
+                                                     defaultValue='',
+                                                     optional=True)
+        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        options_param.setMetadata({
+            'widget_wrapper': {
+                'class': 'processing.algs.gdal.ui.RasterOptionsWidget.RasterOptionsWidgetWrapper'}})
+        self.addParameter(options_param)
+
+        dataType_param = QgsProcessingParameterEnum(self.DATA_TYPE,
+                                                    self.tr('Output data type'),
+                                                    self.TYPES,
+                                                    allowMultiple=False,
+                                                    defaultValue=5)
+        dataType_param.setFlags(dataType_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(dataType_param)
+
+        init_param = QgsProcessingParameterNumber(self.INIT,
+                                                  self.tr('Pre-initialize the output image with value'),
+                                                  type=QgsProcessingParameterNumber.Double,
+                                                  defaultValue=0.0,
+                                                  optional=True)
+        init_param.setFlags(init_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(init_param)
+
+        invert_param = QgsProcessingParameterBoolean(self.INVERT,
+                                                     self.tr('Invert rasterization'),
+                                                     defaultValue=False)
+        invert_param.setFlags(invert_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(invert_param)
+
+        self.addParameter(QgsProcessingParameterRasterDestination(self.OUTPUT,
+                                                                  self.tr('Rasterized')))
+
+    def getUniqueValues(self,layer,fieldname):
+        res = set()
+        for f in layer.getFeatures():
+            res.add(f[fieldname])
+        return res
+                                                                  
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
-
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
-        source = self.parameterAsSource(parameters, self.INPUT, context)
-        (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT,
-                context, source.fields(), source.wkbType(), source.sourceCrs())
-
-        # Compute the number of steps to display within the progress bar and
-        # get features from source
-        total = 100.0 / source.featureCount() if source.featureCount() else 0
-        features = source.getFeatures()
-
-        for current, feature in enumerate(features):
-            # Stop the algorithm if cancel button has been clicked
-            if feedback.isCanceled():
-                break
-
-            # Add a feature in the sink
-            sink.addFeature(feature, QgsFeatureSink.FastInsert)
-
-            # Update the progress bar
-            feedback.setProgress(int(current * total))
-
-        # Return the results of the algorithm. In this case our only result is
-        # the feature sink which contains the processed features, but some
-        # algorithms may return multiple feature sinks, calculated numeric
-        # statistics, etc. These should all be included in the returned
-        # dictionary, with keys matching the feature corresponding parameter
-        # or output names.
-        return {self.OUTPUT: dest_id}
+        # Dummy function to enable running an alg inside an alg
+        def no_post_process(alg, context, feedback):
+            pass
+        
+        input = self.parameterAsVectorLayer(parameters,self.INPUT,context)
+        fieldname = self.parameterAsString(parameters,self.FIELD,context)
+        
+        vals = self.getUniqueValues(input,fieldname)
+        feedback.pushDebugInfo(str(vals))
+        
+        res = processing.run("gdal:rasterize",parameters,onFinish=no_post_process,context=context,feedback=feedback)
+        
+        return res
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return 'rasterizestring'
 
     def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
         return self.tr(self.name())
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
         return self.tr(self.groupId())
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return 'Conversion'
 
     def tr(self, string):
