@@ -34,6 +34,9 @@ import os
 
 import processing
 
+from .generate_integer_field_algorithm import GenerateIntegerFieldCreationAlgorithm
+from .qgis_lib_mc import qgsUtils
+
 from PyQt5.QtCore import QCoreApplication
 # from qgis.core import (QgsProcessing,
                        # QgsFeatureSink,
@@ -41,7 +44,10 @@ from PyQt5.QtCore import QCoreApplication
                        # QgsProcessingParameterFeatureSource,
                        # QgsProcessingParameterFeatureSink)
 
-from qgis.core import (QgsProcessing,
+from qgis.core import (QgsProject,
+                       QgsVectorLayer,
+                       QgsProcessing,
+                       QgsProcessingUtils,
                        QgsProcessingAlgorithm,
                        QgsRasterFileWriter,
                        QgsProcessingParameterDefinition,
@@ -163,6 +169,23 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         
         vals = self.getUniqueValues(input,fieldname)
         feedback.pushDebugInfo(str(vals))
+        
+        tmp_layer = QgsProcessingUtils.generateTempFilename('rasterize_string_aux.gpkg')
+        feedback.pushDebugInfo("tmp_layer = " + str(tmp_layer))
+        
+        alg_parameters = { GenerateIntegerFieldCreationAlgorithm.INPUT : input,
+                           GenerateIntegerFieldCreationAlgorithm.INPUT_FIELD : fieldname,
+                           GenerateIntegerFieldCreationAlgorithm.OUTPUT : 'memory:' }
+        res_new = processing.run("RasterizeString:generateIntegerFieldCreation",alg_parameters,
+                                 onFinish=no_post_process,context=context,feedback=feedback)
+                                 
+        new_layer_id = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT]
+        assoc = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT_ASSOC]
+        
+        #feedback.pushDebugInfo(str(assoc))
+        parameters['INPUT'] = new_layer_id
+        parameters['FIELD'] = GenerateIntegerFieldCreationAlgorithm.OUTPUT_FIELD_DEFAULT
+        feedback.pushDebugInfo("New parameters : " + str(parameters))
         
         res = processing.run("gdal:rasterize",parameters,onFinish=no_post_process,context=context,feedback=feedback)
         

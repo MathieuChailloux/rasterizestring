@@ -195,9 +195,12 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
             for in_field in input_fields:
                 new_f[in_field] = f[in_field]
             new_f[out_fieldname] = assoc[in_val]
+            new_f.setGeometry(f.geometry())
             sink.addFeature(new_f)
+            
+        feedback.pushDebugInfo("Assoc : " + str(assoc))
         
-        return {self.OUTPUT: dest_id}
+        return {self.OUTPUT: dest_id, self.OUTPUT_ASSOC : assoc}
 
     def name(self):
         return 'generateIntegerFieldCreation'
