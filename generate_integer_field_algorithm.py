@@ -185,12 +185,15 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
         
         assoc = {}
         cpt = 1
+        input_fields = input.fields().names()
         for f in input.getFeatures():
             in_val = f[in_fieldname]
             if in_val not in assoc:
                 assoc[in_val] = cpt
                 cpt += 1
-            new_f = QgsFeature(f)
+            new_f = QgsFeature(output_fields)
+            for in_field in input_fields:
+                new_f[in_field] = f[in_field]
             new_f[out_fieldname] = assoc[in_val]
             sink.addFeature(new_f)
         
