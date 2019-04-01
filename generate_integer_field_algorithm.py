@@ -30,7 +30,7 @@ __copyright__ = '(C) 2019 by Mathieu Chailloux'
 
 __revision__ = '$Format:%H$'
 
-import os
+import os, csv
 
 import processing
 
@@ -41,7 +41,10 @@ from PyQt5.QtCore import QCoreApplication, QVariant
                        # QgsProcessingParameterFeatureSource,
                        # QgsProcessingParameterFeatureSink)
 
-from qgis.core import (QgsProcessing,
+from qgis.core import (QgsVectorLayer,
+                       QgsProject,
+                       QgsProcessing,
+                       QgsProcessingUtils,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterFeatureSource,
@@ -199,6 +202,23 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
             sink.addFeature(new_f)
             
         feedback.pushDebugInfo("Assoc : " + str(assoc))
+        csv_file = QgsProcessingUtils.generateTempFilename('Association.csv')
+        feedback.pushDebugInfo("CSV file : " +str(csv_file))
+        
+        col1, col2 = ('new integer field','old value')
+        with open(csv_file,'w+') as f:
+            fieldnames = [col1,col2]
+            writer = csv.DictWriter(f,fieldnames=fieldnames)
+            writer.writeheader()
+            for k, v in assoc.items():
+                row = { col1 : v, col2 : str(k) }
+                writer.writerow(row)
+        csv_layer = QgsVectorLayer("file:///" + csv_file + "?delimiter=;&crs=epsg:2154",'Association',"delimitedtext")
+        if csv_layer is None:
+            raise QgsProcessingException("INVALID NONE")
+        if not csv_layer.isValid():
+            raise QgsProcessingException("INVALID")
+        QgsProject.instance().addMapLayer(csv_layer)
         
         return {self.OUTPUT: dest_id, self.OUTPUT_ASSOC : assoc}
 

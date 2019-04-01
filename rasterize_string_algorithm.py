@@ -35,7 +35,6 @@ import os
 import processing
 
 from .generate_integer_field_algorithm import GenerateIntegerFieldCreationAlgorithm
-from .qgis_lib_mc import qgsUtils
 
 from PyQt5.QtCore import QCoreApplication
 # from qgis.core import (QgsProcessing,
@@ -170,8 +169,8 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         vals = self.getUniqueValues(input,fieldname)
         feedback.pushDebugInfo(str(vals))
         
-        tmp_layer = QgsProcessingUtils.generateTempFilename('rasterize_string_aux.gpkg')
-        feedback.pushDebugInfo("tmp_layer = " + str(tmp_layer))
+        #tmp_layer = QgsProcessingUtils.generateTempFilename('rasterize_string_aux.gpkg')
+        #feedback.pushDebugInfo("tmp_layer = " + str(tmp_layer))
         
         alg_parameters = { GenerateIntegerFieldCreationAlgorithm.INPUT : input,
                            GenerateIntegerFieldCreationAlgorithm.INPUT_FIELD : fieldname,
