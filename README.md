@@ -19,7 +19,7 @@ This is a QGIS 3 plugin.
 
 ## Installation
 
-Go to plugins menu, activate experimental plugins, search for *rasterizestring* and install it.
+Go to plugins menu, search for *rasterizestring* and install it.
 
 Open processing toolbox (*processing* menu if not already displayed), a new provider *RasterizeString* containing *Rasterize from string field* algorithm shall appear.
 

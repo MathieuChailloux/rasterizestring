@@ -14,22 +14,23 @@ version=0.1
 author=Mathieu Chailloux
 email=mathieu@chailloux.org
 
-about=This plugin extends gdal rasterize command to burn values from non-numeric field.
+about=Conversion from vector to raster. This algorithm is a wrapper of gdal rasterize that allows to specify a non-numeric field.  Output raster values are automatically generated according to input field values. A temporary integer field is created and a new integer value is associated to each input unique value (from 1 to N with N = number of unique values). Such association is loaded is CSV file 'Association.csv'. Output data type is chosen according to data range (unsigned integer type of minimal range, e.g. Byte, UInt16 or UInt32).
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/MathieuChailloux/rasterizestring/issues
+repository=https://github.com/MathieuChailloux/rasterizestring
 # End of mandatory metadata
 
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=rasterizestring changelog:
+    0.1 - First release
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python,raster,vector,rasterize,conversion,string
 
-homepage=http://homepage
-category=Analysis
+homepage=https://github.com/MathieuChailloux/rasterizestring
+category=Raster
 icon=icon.png
 # experimental flag
 experimental=False
