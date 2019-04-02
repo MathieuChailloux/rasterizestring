@@ -36,4 +36,4 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
     #
     from .rasterize_string import RasterizeStringPlugin
-    return RasterizeStringPlugin()
+    return RasterizeStringPlugin(iface)

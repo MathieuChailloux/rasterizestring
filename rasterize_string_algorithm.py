@@ -206,7 +206,7 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         return self.tr(self.groupId())
 
     def groupId(self):
-        return 'Conversion'
+        return None#'Conversion'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)

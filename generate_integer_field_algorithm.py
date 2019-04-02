@@ -96,18 +96,21 @@ class GenerateIntegerFieldEditAlgorithm(QgsProcessingAlgorithm):
             raise QgsProcessingException("Output field '" + str(out_fieldname) + "' already exists")
         
         out_field = QgsField(out_fieldname,QVariant.Int)
-        input.dataProvider().addAttributes([out_field])
+        input_provider = input.dataProvider()
+        input_provider.addAttributes([out_field])
         input.updateFields()
         feedback.pushInfo("input layer fields : " + str(input.fields().names()))
         
+        in_field_idx = input_provider.fieldNameIndex(in_fieldname)
+        unique_vals = sorted(input.uniqueValues(in_field_idx))
+        feedback.pushDebugInfo("unique_vals " + str(unique_vals))
         assoc = {}
-        cpt = 1
+        for idx, v in enumerate(unique_vals):
+            assoc[v] = idx + 1
+        
         input.startEditing()
         for f in input.getFeatures():
             in_val = f[in_fieldname]
-            if in_val not in assoc:
-                assoc[in_val] = cpt
-                cpt += 1
             f[out_fieldname] = assoc[in_val]
             input.updateFeature(f)
         input.commitChanges()

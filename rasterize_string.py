@@ -34,8 +34,11 @@ import os
 import sys
 import inspect
 
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction
 from qgis.core import QgsProcessingAlgorithm, QgsApplication
 from .rasterize_string_provider import RasterizeStringProvider
+from .rasterize_string_algorithm import RasterizeStringAlgorithm
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 
@@ -45,11 +48,22 @@ if cmd_folder not in sys.path:
 
 class RasterizeStringPlugin(object):
 
-    def __init__(self):
+    def __init__(self,iface):
         self.provider = RasterizeStringProvider()
+        self.iface = iface
+        #self.alg = RasterizeStringAlgorithm()
+        #self.name = "&Rasterize from string field"
+        
+    # def run(self):
+        # alg = RasterizeStringAlgorithm()
+        # alg.run()
 
     def initGui(self):
+        #self.actionMain = QAction(QIcon(":/plugins/testplug/icon.png"),self.name,self.iface.mainWindow())
+        #self.actionMain.triggered.connect(self.run)
+        #self.iface.addPluginToRasterMenu("RasterizeString",self.actionMain)
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def unload(self):
+        #self.iface.removePluginMenu("RasterizeString", self.actionMain)
         QgsApplication.processingRegistry().removeProvider(self.provider)
