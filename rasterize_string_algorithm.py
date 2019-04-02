@@ -148,6 +148,12 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
                                                      defaultValue=False)
         invert_param.setFlags(invert_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         self.addParameter(invert_param)
+        
+        all_touch_param = QgsProcessingParameterBoolean(self.ALL_TOUCH,
+                                                     self.tr('ALL_TOUCHED mode'),
+                                                     defaultValue=False)
+        all_touch_param.setFlags(all_touch_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        self.addParameter(all_touch_param)
 
         self.addParameter(QgsProcessingParameterRasterDestination(self.OUTPUT,
                                                                   self.tr('Rasterized')))
