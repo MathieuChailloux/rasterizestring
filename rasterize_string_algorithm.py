@@ -200,13 +200,16 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         return 'rasterizestring'
 
     def displayName(self):
-        return self.tr(self.name())
+        return self.tr('Rasterize string field')
 
     def group(self):
         return self.tr(self.groupId())
 
     def groupId(self):
         return None#'Conversion'
+        
+    def shortHelpString(self):
+        return self.tr("Conversion from vector to raster. This algorithm is a wrapper of gdal rasterize that allows to specify a non-numeric field.\nOutput raster values are automatically generated according to input field values. A temporary integer field is created and a new integer value is associated to each input unique value (from 1 to N with N = number of unique values). Such association is loaded is CSV file 'Association.csv'.\nOutput data type is chosen according to data range (unsigned integer type of minimal range, e.g. Byte, UInt16 or UInt32).")
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
