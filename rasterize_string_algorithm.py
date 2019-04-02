@@ -127,13 +127,13 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
                 'class': 'processing.algs.gdal.ui.RasterOptionsWidget.RasterOptionsWidgetWrapper'}})
         self.addParameter(options_param)
 
-        dataType_param = QgsProcessingParameterEnum(self.DATA_TYPE,
-                                                    self.tr('Output data type'),
-                                                    self.TYPES,
-                                                    allowMultiple=False,
-                                                    defaultValue=5)
-        dataType_param.setFlags(dataType_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
-        self.addParameter(dataType_param)
+        # dataType_param = QgsProcessingParameterEnum(self.DATA_TYPE,
+                                                    # self.tr('Output data type'),
+                                                    # self.TYPES,
+                                                    # allowMultiple=False,
+                                                    # defaultValue=5)
+        # dataType_param.setFlags(dataType_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        # self.addParameter(dataType_param)
 
         init_param = QgsProcessingParameterNumber(self.INIT,
                                                   self.tr('Pre-initialize the output image with value'),
@@ -158,6 +158,17 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
             res.add(f[fieldname])
         return res
         
+    def getSmallestType(self,max_val):
+        assert(max_val >= 0)
+        if max_val < 256:
+            return 'Byte'
+        elif max_val < pow(2,16):
+            return 'UInt16'
+        elif max_val < pow(2,32):
+            return 'UInt32'
+        else:
+            return 'Float32'
+        
     def processAlgorithm(self, parameters, context, feedback):
         # Dummy function to enable running an alg inside an alg
         def no_post_process(alg, context, feedback):
@@ -166,8 +177,8 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         input = self.parameterAsVectorLayer(parameters,self.INPUT,context)
         fieldname = self.parameterAsString(parameters,self.FIELD,context)
         
-        vals = self.getUniqueValues(input,fieldname)
-        feedback.pushDebugInfo(str(vals))
+        # vals = self.getUniqueValues(input,fieldname)
+        # feedback.pushDebugInfo(str(vals))
         
         #tmp_layer = QgsProcessingUtils.generateTempFilename('rasterize_string_aux.gpkg')
         #feedback.pushDebugInfo("tmp_layer = " + str(tmp_layer))
@@ -180,8 +191,14 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
                                  
         new_layer_id = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT]
         assoc = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT_ASSOC]
+        # csv_fname =  res_new["CSV"]
+        # csv_layer = QgsVectorLayer(csv_fname,"Association","ogr")
+        # QgsProject.instance().addMapLayer(csv_layer)
+        max_val = len(assoc)
+        data_type = self.TYPES.index(self.getSmallestType(max_val))
         
         #feedback.pushDebugInfo(str(assoc))
+        parameters[self.DATA_TYPE] = data_type
         parameters['INPUT'] = new_layer_id
         parameters['FIELD'] = GenerateIntegerFieldCreationAlgorithm.OUTPUT_FIELD_DEFAULT
         feedback.pushDebugInfo("New parameters : " + str(parameters))

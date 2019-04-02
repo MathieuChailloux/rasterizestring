@@ -186,14 +186,20 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
         if sink is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
         
+        input_provider = input.dataProvider()
+        in_field_idx = input_provider.fieldNameIndex(in_fieldname)
+        unique_vals = sorted(input.uniqueValues(in_field_idx))
+        feedback.pushDebugInfo("unique_vals " + str(unique_vals))
         assoc = {}
-        cpt = 1
+        for idx, v in enumerate(unique_vals):
+            assoc[v] = idx + 1
+        feedback.pushDebugInfo("Assoc : " + str(assoc))
         input_fields = input.fields().names()
         for f in input.getFeatures():
             in_val = f[in_fieldname]
-            if in_val not in assoc:
-                assoc[in_val] = cpt
-                cpt += 1
+            # if in_val not in assoc:
+                # assoc[in_val] = cpt
+                # cpt += 1
             new_f = QgsFeature(output_fields)
             for in_field in input_fields:
                 new_f[in_field] = f[in_field]
@@ -213,14 +219,15 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
             for k, v in assoc.items():
                 row = { col1 : v, col2 : str(k) }
                 writer.writerow(row)
-        csv_layer = QgsVectorLayer("file:///" + csv_file + "?delimiter=;&crs=epsg:2154",'Association',"delimitedtext")
+        csv_uri = "file:///" + csv_file + "?geomType=none" #&xField=" + col1 + "&yField=" + col2
+        csv_layer = QgsVectorLayer(csv_file,"Association","ogr")
         if csv_layer is None:
             raise QgsProcessingException("INVALID NONE")
         if not csv_layer.isValid():
             raise QgsProcessingException("INVALID")
         QgsProject.instance().addMapLayer(csv_layer)
         
-        return {self.OUTPUT: dest_id, self.OUTPUT_ASSOC : assoc}
+        return {self.OUTPUT: dest_id, self.OUTPUT_ASSOC : assoc, "CSV" : csv_file }
 
     def name(self):
         return 'generateIntegerFieldCreation'
