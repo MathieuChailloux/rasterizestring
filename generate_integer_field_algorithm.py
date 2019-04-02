@@ -193,13 +193,10 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
         assoc = {}
         for idx, v in enumerate(unique_vals):
             assoc[v] = idx + 1
-        feedback.pushDebugInfo("Assoc : " + str(assoc))
+        #feedback.pushDebugInfo("Assoc : " + str(assoc))
         input_fields = input.fields().names()
         for f in input.getFeatures():
             in_val = f[in_fieldname]
-            # if in_val not in assoc:
-                # assoc[in_val] = cpt
-                # cpt += 1
             new_f = QgsFeature(output_fields)
             for in_field in input_fields:
                 new_f[in_field] = f[in_field]
@@ -207,9 +204,10 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
             new_f.setGeometry(f.geometry())
             sink.addFeature(new_f)
             
-        feedback.pushDebugInfo("Assoc : " + str(assoc))
         csv_file = QgsProcessingUtils.generateTempFilename('Association.csv')
+        csvt_file = csv_file + "t"
         feedback.pushDebugInfo("CSV file : " +str(csv_file))
+        feedback.pushDebugInfo("CSVT file : " +str(csvt_file))
         
         col1, col2 = ('new integer field','old value')
         with open(csv_file,'w+') as f:
@@ -219,15 +217,20 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
             for k, v in assoc.items():
                 row = { col1 : v, col2 : str(k) }
                 writer.writerow(row)
-        csv_uri = "file:///" + csv_file + "?geomType=none" #&xField=" + col1 + "&yField=" + col2
+                
+        with open(csvt_file,'w+') as ft:
+            ft.write("Integer,String")
+            
         csv_layer = QgsVectorLayer(csv_file,"Association","ogr")
         if csv_layer is None:
             raise QgsProcessingException("INVALID NONE")
         if not csv_layer.isValid():
             raise QgsProcessingException("INVALID")
         QgsProject.instance().addMapLayer(csv_layer)
+        tree_root = QgsProject.instance().layerTreeRoot()
+        tree_root.addLayer(csv_layer)
         
-        return {self.OUTPUT: dest_id, self.OUTPUT_ASSOC : assoc, "CSV" : csv_file }
+        return {self.OUTPUT: dest_id, self.OUTPUT_ASSOC : assoc }
 
     def name(self):
         return 'generateIntegerFieldCreation'

@@ -177,27 +177,16 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         input = self.parameterAsVectorLayer(parameters,self.INPUT,context)
         fieldname = self.parameterAsString(parameters,self.FIELD,context)
         
-        # vals = self.getUniqueValues(input,fieldname)
-        # feedback.pushDebugInfo(str(vals))
-        
-        #tmp_layer = QgsProcessingUtils.generateTempFilename('rasterize_string_aux.gpkg')
-        #feedback.pushDebugInfo("tmp_layer = " + str(tmp_layer))
-        
         alg_parameters = { GenerateIntegerFieldCreationAlgorithm.INPUT : input,
                            GenerateIntegerFieldCreationAlgorithm.INPUT_FIELD : fieldname,
                            GenerateIntegerFieldCreationAlgorithm.OUTPUT : 'memory:' }
         res_new = processing.run("RasterizeString:generateIntegerFieldCreation",alg_parameters,
                                  onFinish=no_post_process,context=context,feedback=feedback)
-                                 
         new_layer_id = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT]
         assoc = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT_ASSOC]
-        # csv_fname =  res_new["CSV"]
-        # csv_layer = QgsVectorLayer(csv_fname,"Association","ogr")
-        # QgsProject.instance().addMapLayer(csv_layer)
+        
         max_val = len(assoc)
         data_type = self.TYPES.index(self.getSmallestType(max_val))
-        
-        #feedback.pushDebugInfo(str(assoc))
         parameters[self.DATA_TYPE] = data_type
         parameters['INPUT'] = new_layer_id
         parameters['FIELD'] = GenerateIntegerFieldCreationAlgorithm.OUTPUT_FIELD_DEFAULT
