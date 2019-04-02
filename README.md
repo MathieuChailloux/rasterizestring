@@ -13,13 +13,15 @@ Output raster values are automatically generated according to input field values
 
 Output data type is chosen according to data range (unsigned integer type of minimal range, e.g. Byte, UInt16 or UInt32).
 
+*ALL_TOUCH* option can be activated also in graphical mode.
+
 ## Requirements
 
 This is a QGIS 3 plugin.
 
 ## Installation
 
-Go to plugins menu, search for *rasterizestring* and install it.
+Go to plugins menu, activate experimental plugins, search for *rasterizestring* and install it.
 
 Open processing toolbox (*processing* menu if not already displayed), a new provider *RasterizeString* containing *Rasterize from string field* algorithm shall appear.
 
