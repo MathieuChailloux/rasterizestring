@@ -8,7 +8,7 @@
 
 [general]
 name=RasterizeString
-qgisMinimumVersion=3.0
+qgisMinimumVersion=3.4.0
 description=This plugin extends gdal rasterize command to burn values from non-numeric field.
 version=0.1
 author=Mathieu Chailloux
@@ -37,4 +37,6 @@ experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
+
+commit=f2c4cfb4b31889f91c11eefe41661cc17616d448
 
