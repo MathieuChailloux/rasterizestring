@@ -19,4 +19,5 @@
 # ***************************************************************************/
 
 doc:
-	cd help; make html
+	cp README.rst help/source/index.rst
+	cd help && make html
