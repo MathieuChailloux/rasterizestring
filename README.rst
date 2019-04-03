@@ -37,6 +37,8 @@ Open processing toolbox (*processing* menu if not already displayed), a new prov
 
 .. image:: pictures/screens/toolbox.png
 
+.. image:: pictures/screens/algGUI.png
+
 Sample data
 ___________
 
