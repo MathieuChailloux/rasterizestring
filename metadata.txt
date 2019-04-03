@@ -38,5 +38,5 @@ experimental=True
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
-commit=f2c4cfb4b31889f91c11eefe41661cc17616d448
+commit=a6414e20644d9eb2ff6d62a3de407748af5fdb47
 

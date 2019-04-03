@@ -26,7 +26,7 @@ Output data type is chosen according to data range (unsigned integer type of min
 Requirements
 ____________
 
-This is a QGIS 3 plugin.
+QGIS minimum version is 3.4.0
 
 Installation
 ____________
@@ -35,10 +35,19 @@ Go to plugins menu, activate experimental plugins, search for *rasterizestring* 
 
 Open processing toolbox (*processing* menu if not already displayed), a new provider *RasterizeString* containing *Rasterize from string field* algorithm shall appear.
 
+.. image:: pictures/screens/toolbox.png
+
 Sample data
 ___________
 
 A layer is provided in *sample_data* directory containing fields of integer, string and date types but it should work on your own data.
+
+
+.. image:: pictures/screens/vect.png
+
+.. image:: pictures/screens/rast.png
+
+.. image:: pictures/screens/association.png
 
 Perspectives
 ____________
@@ -51,6 +60,8 @@ Some points that could be explored:
 * if selected field has integer type, shall *rasterize* be directly called ?
 * how to manages dates ?
 * legend creation
+* QGIS 2 version
+* Launch *rasterizestring* from *Raster* menu
 * ...
 
 
