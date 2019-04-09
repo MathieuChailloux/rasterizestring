@@ -165,7 +165,7 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(QgsProcessingParameterString(self.OUTPUT_FIELD,
                                                        self.tr('Output index field name'),
-                                                       defaultValue=self.OUTPUT_FIELD_DEFAULT)
+                                                       defaultValue=self.OUTPUT_FIELD_DEFAULT))
         self.addParameter(QgsProcessingParameterFeatureSink(self.OUTPUT,
                                                             self.tr("Output layer")))
         
