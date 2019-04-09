@@ -51,6 +51,7 @@ from qgis.core import (QgsVectorLayer,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterField,
                        QgsProcessingParameterNumber,
+                       QgsProcessingParameterRange,
                        QgsProcessingParameterString,
                        QgsProcessingException,
                        QgsField,
@@ -141,6 +142,7 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
 
     INPUT = 'INPUT'
     INPUT_FIELD = 'FIELD'
+    RANGE = 'RANGE'
     
     OUTPUT_FIELD = 'OUTPUT_FIELD'
     OUTPUT_ASSOC = 'OUTPUT_ASSOC'
@@ -149,7 +151,6 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
     OUTPUT_FIELD_DEFAULT = 'INT_FIELD'
     
     def initAlgorithm(self, config=None):
-
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
                                                               self.tr('Input layer')))
         self.addParameter(QgsProcessingParameterField(self.INPUT_FIELD,
@@ -157,11 +158,14 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
                                                       None,
                                                       self.INPUT,
                                                       QgsProcessingParameterField.Any))
+        self.addParameter(QgsProcessingParameterRange(self.RANGE,
+                                                      description=self.tr('Index range'),
+                                                      type=QgsProcessingParameterNumber.Integer,
+                                                      defaultValue=[0.0,9999.0]))
 
         self.addParameter(QgsProcessingParameterString(self.OUTPUT_FIELD,
-                                                       self.tr('Additional creation options'),
-                                                       defaultValue=self.OUTPUT_FIELD_DEFAULT,
-                                                       optional=True))
+                                                       self.tr('Output index field name'),
+                                                       defaultValue=self.OUTPUT_FIELD_DEFAULT)
         self.addParameter(QgsProcessingParameterFeatureSink(self.OUTPUT,
                                                             self.tr("Output layer")))
         
@@ -192,10 +196,31 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
         input_provider = input.dataProvider()
         in_field_idx = input_provider.fieldNameIndex(in_fieldname)
         unique_vals = sorted(input.uniqueValues(in_field_idx))
-        feedback.pushDebugInfo("unique_vals " + str(unique_vals))
+        feedback.pushDebugInfo("unique_vals: " + str(unique_vals))
+        nb_vals = len(unique_vals)
+        feedback.pushDebugInfo("nb_vals = " + str(nb_vals))
+        
+        index_range = self.parameterAsRange(parameters,self.RANGE,context)
+        if index_range:
+            feedback.pushDebugInfo("index_range = " + str(index_range))
+            if len(index_range) != 2:
+                raise QgsProcessingException("Ill-formed index range: " + str(index_range) + "")
+            min_idx, max_idx = int(index_range[0]), int(index_range[1])
+            feedback.pushDebugInfo("min = " + str(min_idx))
+            feedback.pushDebugInfo("max = " + str(max_idx))
+            if min_idx < 0 or max_idx < 0:
+                raise QgsProcessingException("Index range bounds must be positive")
+            len_range = max_idx - min_idx + 1
+        else:
+            min_idx, max_idx, len_range = 0, nb_vals, nb_vals
+        feedback.pushDebugInfo("len_range = " + str(len_range))
+        if len_range < nb_vals:
+            raise QgsProcessingException("Range " + str(index_range) + " is too small to store "
+                                         + str(nb_vals) + " unique values")
+        
         assoc = {}
         for idx, v in enumerate(unique_vals):
-            assoc[v] = idx + 1
+            assoc[v] = min_idx + idx
         #feedback.pushDebugInfo("Assoc : " + str(assoc))
         input_fields = input.fields().names()
         for f in input.getFeatures():
