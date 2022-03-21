@@ -83,44 +83,59 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         self.units = [self.tr("Pixels"),
                       self.tr("Georeferenced units")]
 
-        self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
-                                                              self.tr('Input layer')))
-        self.addParameter(QgsProcessingParameterField(self.FIELD,
-                                                      self.tr('Field to use for a burn-in value'),
-                                                      None,
-                                                      self.INPUT,
-                                                      QgsProcessingParameterField.Any,
-                                                      optional=True))
-        self.addParameter(QgsProcessingParameterNumber(self.BURN,
-                                                       self.tr('A fixed value to burn'),
-                                                       type=QgsProcessingParameterNumber.Double,
-                                                       defaultValue=0.0,
-                                                       optional=True))
-        self.addParameter(QgsProcessingParameterEnum(self.UNITS,
-                                                     self.tr('Output raster size units'),
-                                                     self.units))
-        self.addParameter(QgsProcessingParameterNumber(self.WIDTH,
-                                                       self.tr('Width/Horizontal resolution'),
-                                                       type=QgsProcessingParameterNumber.Double,
-                                                       minValue=0.0,
-                                                       defaultValue=0.0))
-        self.addParameter(QgsProcessingParameterNumber(self.HEIGHT,
-                                                       self.tr('Height/Vertical resolution'),
-                                                       type=QgsProcessingParameterNumber.Double,
-                                                       minValue=0.0,
-                                                       defaultValue=0.0))
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.INPUT,
+                self.tr('Input layer')))
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.FIELD,
+                self.tr('Field to use for a burn-in value'),
+                None,
+                self.INPUT,
+                QgsProcessingParameterField.String,
+                optional=True))
+        # self.addParameter(
+            # QgsProcessingParameterNumber(
+                # self.BURN,
+                # self.tr('A fixed value to burn'),
+                # type=QgsProcessingParameterNumber.Double,
+                # defaultValue=0.0,
+                # optional=True))
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                self.UNITS,
+                self.tr('Output raster size units'),
+                self.units))
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.WIDTH,
+                self.tr('Width/Horizontal resolution'),
+                type=QgsProcessingParameterNumber.Double,
+                minValue=0.0,
+                defaultValue=0.0))
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.HEIGHT,
+                self.tr('Height/Vertical resolution'),
+                type=QgsProcessingParameterNumber.Double,
+                minValue=0.0,
+                defaultValue=0.0))
         self.addParameter(QgsProcessingParameterExtent(self.EXTENT,
                                                        self.tr('Output extent')))
-        self.addParameter(QgsProcessingParameterNumber(self.NODATA,
-                                                       self.tr('Assign a specified nodata value to output bands'),
-                                                       type=QgsProcessingParameterNumber.Double,
-                                                       defaultValue=0.0,
-                                                       optional=True))
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.NODATA,
+                self.tr('Assign a specified nodata value to output bands'),
+                type=QgsProcessingParameterNumber.Double,
+                defaultValue=0.0,
+                optional=True))
 
-        options_param = QgsProcessingParameterString(self.OPTIONS,
-                                                     self.tr('Additional creation options'),
-                                                     defaultValue='',
-                                                     optional=True)
+        options_param = QgsProcessingParameterString(
+            self.OPTIONS,
+            self.tr('Additional creation options'),
+            defaultValue='',
+            optional=True)
         options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         options_param.setMetadata({
             'widget_wrapper': {
@@ -135,23 +150,26 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         # dataType_param.setFlags(dataType_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         # self.addParameter(dataType_param)
 
-        init_param = QgsProcessingParameterNumber(self.INIT,
-                                                  self.tr('Pre-initialize the output image with value'),
-                                                  type=QgsProcessingParameterNumber.Double,
-                                                  defaultValue=0.0,
-                                                  optional=True)
+        init_param = QgsProcessingParameterNumber(
+            self.INIT,
+            self.tr('Pre-initialize the output image with value'),
+            type=QgsProcessingParameterNumber.Double,
+            defaultValue=0.0,
+            optional=True)
         init_param.setFlags(init_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         self.addParameter(init_param)
 
-        invert_param = QgsProcessingParameterBoolean(self.INVERT,
-                                                     self.tr('Invert rasterization'),
-                                                     defaultValue=False)
+        invert_param = QgsProcessingParameterBoolean(
+            self.INVERT,
+            self.tr('Invert rasterization'),
+            defaultValue=False)
         invert_param.setFlags(invert_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         self.addParameter(invert_param)
         
-        all_touch_param = QgsProcessingParameterBoolean(self.ALL_TOUCH,
-                                                     self.tr('ALL_TOUCHED mode'),
-                                                     defaultValue=False)
+        all_touch_param = QgsProcessingParameterBoolean(
+            self.ALL_TOUCH,
+            self.tr('ALL_TOUCHED mode'),
+            defaultValue=False)
         all_touch_param.setFlags(all_touch_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
         self.addParameter(all_touch_param)
 
@@ -184,10 +202,12 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         fieldname = self.parameterAsString(parameters,self.FIELD,context)
         
         alg_parameters = { GenerateIntegerFieldCreationAlgorithm.INPUT : input,
-                           GenerateIntegerFieldCreationAlgorithm.INPUT_FIELD : fieldname,
-                           GenerateIntegerFieldCreationAlgorithm.OUTPUT : 'memory:' }
-        res_new = processing.run("RasterizeString:generateIntegerFieldCreation",alg_parameters,
-                                 onFinish=no_post_process,context=context,feedback=feedback)
+           GenerateIntegerFieldCreationAlgorithm.INPUT_FIELD : fieldname,
+           GenerateIntegerFieldCreationAlgorithm.OUTPUT : 'memory:' }
+        feedback.pushDebugInfo("alg_parameters : " + str(alg_parameters))
+        res_new = processing.run("RasterizeString:generateIntegerFieldCreation",
+            alg_parameters,onFinish=no_post_process,
+            context=context,feedback=feedback)
         new_layer_id = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT]
         assoc = res_new[GenerateIntegerFieldCreationAlgorithm.OUTPUT_ASSOC]
         
@@ -197,8 +217,8 @@ class RasterizeStringAlgorithm(QgsProcessingAlgorithm):
         parameters['INPUT'] = new_layer_id
         parameters['FIELD'] = GenerateIntegerFieldCreationAlgorithm.OUTPUT_FIELD_DEFAULT
         feedback.pushDebugInfo("New parameters : " + str(parameters))
-        
-        res = processing.run("gdal:rasterize",parameters,onFinish=no_post_process,context=context,feedback=feedback)
+        res = processing.run("gdal:rasterize",parameters,
+            onFinish=no_post_process,context=context,feedback=feedback)
         
         return res
 

@@ -151,23 +151,32 @@ class GenerateIntegerFieldCreationAlgorithm(QgsProcessingAlgorithm):
     OUTPUT_FIELD_DEFAULT = 'INT_FIELD'
     
     def initAlgorithm(self, config=None):
-        self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
-                                                              self.tr('Input layer')))
-        self.addParameter(QgsProcessingParameterField(self.INPUT_FIELD,
-                                                      self.tr('Input field'),
-                                                      None,
-                                                      self.INPUT,
-                                                      QgsProcessingParameterField.Any))
-        self.addParameter(QgsProcessingParameterRange(self.RANGE,
-                                                      description=self.tr('Index range'),
-                                                      type=QgsProcessingParameterNumber.Integer,
-                                                      defaultValue=[0.0,9999.0]))
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.INPUT,
+                self.tr('Input layer')))
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.INPUT_FIELD,
+                self.tr('Input field'),
+                parentLayerParameterName=self.INPUT,
+                type=QgsProcessingParameterField.String))
+        self.addParameter(
+            QgsProcessingParameterRange(self.RANGE,
+                description=self.tr('Index range'),
+                type=QgsProcessingParameterNumber.Integer,
+                defaultValue=[0.0,9999.0],
+                optional=True))
 
-        self.addParameter(QgsProcessingParameterString(self.OUTPUT_FIELD,
-                                                       self.tr('Output index field name'),
-                                                       defaultValue=self.OUTPUT_FIELD_DEFAULT))
-        self.addParameter(QgsProcessingParameterFeatureSink(self.OUTPUT,
-                                                            self.tr("Output layer")))
+        self.addParameter(
+            QgsProcessingParameterString(
+                self.OUTPUT_FIELD,
+               self.tr('Output index field name'),
+               defaultValue=self.OUTPUT_FIELD_DEFAULT))
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                self.OUTPUT,
+                self.tr("Output layer")))
         
     def processAlgorithm(self, parameters, context, feedback):
         # Dummy function to enable running an alg inside an alg

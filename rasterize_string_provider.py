@@ -40,11 +40,6 @@ class RasterizeStringProvider(QgsProcessingProvider):
     def __init__(self):
         QgsProcessingProvider.__init__(self)
 
-        # Load algorithms
-        self.alglist = [RasterizeStringAlgorithm(),
-                        GenerateIntegerFieldEditAlgorithm(),
-                        GenerateIntegerFieldCreationAlgorithm()]
-
     def unload(self):
         """
         Unloads the provider. Any tear-down steps required by the provider
@@ -56,7 +51,10 @@ class RasterizeStringProvider(QgsProcessingProvider):
         """
         Loads all algorithms belonging to this provider.
         """
-        for alg in self.alglist:
+        alglist = [RasterizeStringAlgorithm(),
+                   GenerateIntegerFieldEditAlgorithm(),
+                   GenerateIntegerFieldCreationAlgorithm()]
+        for alg in alglist:
             self.addAlgorithm( alg )
 
     def id(self):
